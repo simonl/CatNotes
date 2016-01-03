@@ -584,7 +584,6 @@ namespace Recursion
      *   }
      * }
      * 
-     * 
      * product : (a:category) -> relation (object a)
      * product a (x, y) = {
      *   (x * y) : object a
@@ -624,6 +623,69 @@ namespace Recursion
      *   
      *   eta : (r:object a) -> (f:y ~> (r + x)) -> apply >> join (curry f, null x) == f
      * }
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * span : (a:category) -> relation (object a)
+     * span a (x, y) = {
+     *   join : object a
+     *   left : join ~> x
+     *   right : join ~> y
+     * }
+     * 
+     * spantion : (a:category) -> (x:object a, y:object a) -> relation (span a (x, y))
+     * spantion a (x, y) (s, t) = {
+     *   morph : join s ~> join t
+     *   leftMorph : (morph >> left t) == left s
+     *   rightMorph : (morph >> right t) == right s
+     * }
+     * 
+     * spans : (a:category) -> (object a, object a) -> category
+     * spans a (x, y) = {
+     *   object = span a (x, y)
+     *   (~>) = spantion a (x, y)
+     *   
+     *   null s = { morph = null a (join s) }
+     *   (>>) (s, t, r) (f, g) = { morph = morph f >> morph g } 
+     * }
+     * 
+     * product : (a:category) -> relation (object a)
+     * product a (x, y) = terminal (spans a (x, y))
+     * 
+     * 
+     * 
+     * 
+     * 
+     * cospan : (a:category) -> relation (object a)
+     * cospan a = span (opposite a)
+     * cospan a (x, y) = {
+     *   join : object a
+     *   left : x ~> join
+     *   right : y ~> join
+     * }
+     * 
+     * cospantion : (a:category) -> (x:object a, y:object a) -> relation (span a (x, y))
+     * cospantion a (x, y) (s, t) = {
+     *   morph : join s ~> join t
+     *   leftMorph : (left s >> morph) == left t
+     *   rightMorph : (right s >> morph) == right t
+     * }
+     * 
+     * cospans : (a:category) -> (object a, object a) -> category
+     * cospans a (x, y) = opposite (spans (opposite a) (x, y))
+     * 
+     * coproduct a = product (opposite a)
+     * coproduct a (x, y) = initial (cospans a (x, y))
+     * coproduct a (x, y) = {
+     *   bottom : cospan a (x, y)
+     *   project : (s:cospan a (x, y)) -> cospantion (bottom, s)
+     * }
+     * 
      * 
      * 
      * 
