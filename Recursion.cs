@@ -229,115 +229,6 @@ namespace Recursion
      * 
      * 
      * 
-     * diagram : category -> *
-     * diagram = (i:category, functor (i, a))
-     * 
-     * limit : (a:category) -> diagram a -> *
-     * limit a D = terminal { object = cone a D, (~>) = ... }
-     * 
-     * 
-     * 
-     * (<~>) : (a:category) -> relation (object a)
-     * (<~>) a (x, y) = {
-     *   forward : x ~> y
-     *   backward : x <~ y
-     *   
-     *   idForward : null a x == (forward >> backward)
-     *   idBackward : (forward << backward) == null a y
-     * }
-     * 
-     * 
-     * limit : (I:category, a:category) -> (D:functor (I, a)) -> object a -> *
-     * limit (I, a) D apex = (\c. c ~> apex) <~> (\c. delta c ~> D)
-     * 
-     * hom : (a:category) -> functor (cross (opposite a, a), set)
-     * hom a = {
-     *   map : relation (object a)
-     *   map = (~>)
-     *   
-     *   fmap : ((x, y):(object a, object a), (p, q):(object a, object a)) -> (p ~> x, y ~> q) -> ((x ~> y) -> (p ~> q))
-     *   fmap ((x, y), (p, q)) (f, g) h = f >> h >> g
-     * }
-     * 
-     * presheaf : category -> *
-     * presheaf a = functor (a, *)
-     * 
-     * representation : (a:category) -> presheaf a -> presheaf a
-     * representation a F = {
-     *   map x = natural hom(x, -) F
-     *   fmap (x, y) (f:x ~> y) (t:map x) = {
-     *     transform z (g:y ~> z) = t z (f >> g)
-     *   }
-     * }
-     * 
-     * yoneda : (a:category) -> (F:presheaf a) -> representation a F <~> F
-     * yoneda a F = {
-     *   forward = {
-     *     transform x t = t x (null x)
-     *   }
-     *   
-     *   backward = {
-     *     transform x (xs:map F x) (y:object a) (f:x ~> y) = fmap F (x, y) f xs
-     *   }
-     * }
-     * 
-     * 
-     * discrete : category -> *
-     * discrete a = {
-     *   univalence : (x:object a, y:object a) -> (x <~> y) -> (x == y)
-     * }
-     * 
-     * 
-     * 
-     * 
-     * kleili M = {
-     *   object = object M
-     *   (~>) (a, b) = a ~> map M b
-     *   
-     *   identity = return M
-     *   (>>) (a, b, c) (f, g) = f >> fmap M (b, map M c) g >> join M c
-     * }
-     * 
-     * yoneda (kleisli M) : (F:functor (kleisli M, *)) -> 
-     * yoneda (kleisli M) F = {
-     *   forward = {
-     *     transform x = t x (return M x)
-     *   }
-     *   
-     *   backward = {
-     *     transform x (xs:map F x) (y:object a) (f:x ~> map M y) = fmap F (x, y) f xs : map M (map F y)
-     *   }
-     * }
-     * 
-        async M a = (r:*) -> (a -> M r) -> M r
-
-        bind : (M <: monad) -> M <-> async M
-        bind M .forward : (a:*) -> M a -> async M a
-        bind M .forward a xs r k = join M r (fmap M (r, M r) k xs)
-        bind M .forward a xs r k = join M r (fmap M (r, M r) k xs)
-        bind M .backward : (a:*) -> async M a -> M a
-        bind M .backward a ms = ms a (return M a)
-        bind M .backward a ms = ms a (identity M a)
-
-        yoneda F a = (r:*) -> (a -> r) -> F r
-
-        embed : (F <: functor) -> F <-> yoneda F
-        embed F .forward : (a:*) -> F a -> yoneda F a
-        embed F .forward a xs r k = fmap F (a, r) k xs
-        embed F .backward : (a:*) -> yoneda F a -> F a
-        embed F .backward a fs = fs a (identity a)
-
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
-     * 
      * 
      * set : category
      * set = {
@@ -364,6 +255,24 @@ namespace Recursion
      *   }
      * }
      * 
+     * identical : functor (set, cat)
+     * identical = {
+     *   map : * -> category
+     *   map a = {
+     *     object = a
+     *     (~>) = (==) a
+     *   }
+     *   
+     *   fmap : (a:*, b:*) -> (a -> b) -> functor (map a, map b)
+     *   fmap (a, b) f = {
+     *     map : a -> b
+     *     map = f
+     *     
+     *     fmap : (x:a, y:a) -> (x == y) -> (f x == f y)
+     *     fmap (x, y) refl = refl
+     *   }
+     * }
+     * 
      * objective : functor (cat, set)
      * objective = {
      *   map : category -> *
@@ -374,7 +283,7 @@ namespace Recursion
      * }
      * 
      * opposite : category -> category
-     * opposite = {
+     * opposite a = {
      *   object = object a
      *   (~>) (x, y) = y ~> x
      *   
@@ -400,7 +309,7 @@ namespace Recursion
      *   (x, r) ~> (y, s) = (x ~> y, r ~> s)
      * }
      * 
-     * crossing = functor (cross (cat, cat), cat)
+     * crossing : functor (cross (cat, cat), cat)
      * crossing = {
      *   map : (category, category) -> category
      *   map = cross
@@ -451,21 +360,9 @@ namespace Recursion
      *   }
      * }
      * 
-     * functonatural : (a:category, b:category) -> functor (cross (opposite (naturally (a, b)), naturally (a, b)), set)
-     * functonatural (a, b) = {
-     *   map : relation (functor (a, b))
-     *   map = natural (a, b)
-     *   
-     *   fmap : ((F:functor (a, b), G:functor (a, b)), (P:functor (a, b), Q:functor (a, b))) -> (natural (a, b) (P, F), natural (a, b) (G, Q)) -> natural (a, b) (F, G) -> natural (a, b) (P, Q)
-     *   fmap ((F, G), (P, Q)) (N, M) T = {
-     *     transform : (x:object a) -> map P x ~> map Q x
-     *     transform x = transform N x >> transform T x >> tranform M x
-     *   }
-     * }
-     * 
      * algebraically : (a:category) -> functor (opposite (naturally (a, a)), cat)
      * algebraically a = {
-     *   map : functor (a, a) -> *
+     *   map : functor (a, a) -> category
      *   map = algebraic a
      *   
      *   fmap : (F:functor (a, a), G:functor (a, a)) -> natural (a, a) (G, F) -> functor (algebraic a F, algebraic a G)
@@ -493,6 +390,14 @@ namespace Recursion
      *   }
      * }
      * 
+     * (<~>) : (a:category) -> relation (object a)
+     * (<~>) a (x, y) = {
+     *   forward : x ~> y
+     *   backward : x <~ y
+     *   
+     *   idForward : null a x == (forward >> backward)
+     *   idBackward : (forward << backward) == null a y
+     * }
      * 
      * isomorphism : functor (cat, cat)
      * isomorphism = {
@@ -512,7 +417,80 @@ namespace Recursion
      *   }
      * }
      * 
+     * presheaves : category -> category
+     * presheaves a = naturally (opposite a, set)
      * 
+     * presheaf : category -> *
+     * presheaf a = object (presheaves a)
+     * 
+     * preshaving : functor (opposite cat, cat)
+     * preshaving = {
+     *   map : category -> category
+     *   map = presheaves
+     *   
+     *   fmap : (a:category, b:category) -> functor (b, a) -> functor (presheaves a, presheaves b)
+     *   fmap (a, b) F = {
+     *     map : presheaf a -> presheaf b
+     *     map P = {
+     *       map : object b -> *
+     *       map = map F >> map P
+     *       
+     *       fmap : (x:object b, y:object b) -> (y ~> x) -> map P (map F x) -> map P (map F y)
+     *       fmap (x, y) = fmap F (y, x) >> fmap P (map F x, map F y)
+     *     }
+     *     
+     *     fmap : (P:presheaf a, Q:presheaf a) -> (P ~> Q) -> (map P ~> map Q)
+     *     fmap (P, Q) N = {
+     *       transform : (x:object b) -> map P (map F x) ->  map Q (map F x)
+     *       transform x xs = transform N (map F x)
+     *     }
+     *   }
+     * }
+     * 
+     * hom : (a:category) -> object a -> presheaf a
+     * hom a = map (curry (morphism a))
+     * 
+     * representation : (a:category) -> presheaf a -> object a -> *
+     * representation a F x = natural (opposite a, set) (hom a x, F)
+     * 
+     * representatives : natural (opposite cat, cat) (preshaving, preshaving)
+     * representatives = {
+     *   transform : (a:category) -> functor (presheaves a, presheaves a)
+     *   transform a = {
+     *     map : presheaf a -> presheaf a
+     *     map F = {
+     *       map : object a -> *
+     *       map = representation a F
+     *     
+     *       fmap : (x:object a, y:object a) -> (y ~> x) -> representation a F x -> representation a F y
+     *       fmap (x, y) f N = {
+     *         transform : (z:object a) -> (z ~> y) -> map F z
+     *         transform z g = N z (g >> f)
+     *       }
+     *     }
+     *   
+     *     fmap : (P:presheaf a, Q:presheaf a) -> natural (opposite a, set) (P, Q) -> natural (opposite a, set) (map P, map Q)
+     *     fmap (P, Q) N = {
+     *       transform : (x:object a) -> representation a P x -> representation a Q x
+     *       transform x T = T >> N
+     *     }
+     *   }
+     * }
+     * 
+     * yoneda : (a:category) -> transform representatives a <~> null cat (presheaves a)
+     * yoneda a F = {
+     *   forward = {
+     *     transform : (x:object a) -> representation a F x -> map F x
+     *     transform x T = transform T x (null a x)
+     *   }
+     *   
+     *   backward = {
+     *     transform : (x:object x) -> map F x -> representation a F
+     *     transform x xs = {
+     *       transform : (y:object a) -> (y ~> x) -> map F y
+     *       transform y f = fmap F (x, y) f xs
+     *   }
+     * }
      * 
      * 
      * 
@@ -620,6 +598,50 @@ namespace Recursion
      * 
      * 
      * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * kleili M = {
+     *   object = object M
+     *   (~>) (a, b) = a ~> map M b
+     *   
+     *   identity = return M
+     *   (>>) (a, b, c) (f, g) = f >> fmap M (b, map M c) g >> join M c
+     * }
+     * 
+     * yoneda (kleisli M) : (F:functor (kleisli M, *)) -> 
+     * yoneda (kleisli M) F = {
+     *   forward = {
+     *     transform x = t x (return M x)
+     *   }
+     *   
+     *   backward = {
+     *     transform x (xs:map F x) (y:object a) (f:x ~> map M y) = fmap F (x, y) f xs : map M (map F y)
+     *   }
+     * }
+     * 
+        async M a = (r:*) -> (a -> M r) -> M r
+
+        bind : (M <: monad) -> M <-> async M
+        bind M .forward : (a:*) -> M a -> async M a
+        bind M .forward a xs r k = join M r (fmap M (r, M r) k xs)
+        bind M .forward a xs r k = join M r (fmap M (r, M r) k xs)
+        bind M .backward : (a:*) -> async M a -> M a
+        bind M .backward a ms = ms a (return M a)
+        bind M .backward a ms = ms a (identity M a)
+
+        yoneda F a = (r:*) -> (a -> r) -> F r
+
+        embed : (F <: functor) -> F <-> yoneda F
+        embed F .forward : (a:*) -> F a -> yoneda F a
+        embed F .forward a xs r k = fmap F (a, r) k xs
+        embed F .backward : (a:*) -> yoneda F a -> F a
+        embed F .backward a fs = fs a (identity a)
+
      * 
      * 
      * 
