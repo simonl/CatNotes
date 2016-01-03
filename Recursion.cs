@@ -55,14 +55,6 @@ namespace Recursion
      *   preserving : (reduce r >> morph) == (fmap F (carrier r, carrier s) morph >> reduce s)
      * }
      * 
-     * initial : category -> *
-     * initial a = {
-     *   bottom : object a
-     *   project : (x:object a) -> (bottom ~> x)
-     *   
-     *   factor : (x:object a, y:object) -> (f:x ~> y) -> (project x >> f) == project y
-     * }
-     * 
      * algebraic : (a:category) -> functor (a, a) -> category
      * algebraic a F = {
      *   object = algebra a F
@@ -72,29 +64,168 @@ namespace Recursion
      *   (>>) (r, s, t) (f, g) = { morph = morph f >> morph g }
      * }
      * 
-     * leastfix : (a:category) -> functor (a, a) -> *
-     * leastfix a F = initial (algebraic a F)
+     * initial : category -> *
+     * initial a = {
+     *   bottom : object a
+     *   project : (x:object a) -> (bottom ~> x)
+     *   
+     *   factor : (x:object a, y:object a) -> (f:x ~> y) -> (project x >> f) == project y
+     * }
      * 
-     * recursion : (a:category) -> (F:functor (a, a)) -> leastfix a F
-     * 
-     * fix : (a:category) -> (F:functor (a, a)) -> a
-     * fix a F = carrier (bottom (recursion a F))
-     * 
-     * iso : (a:category) -> (F:functor (a, a)) -> map F (fix a F) ~> fix a F
-     * iso a F = reduce (bottom (recursion a F))
-     * 
-     * catamorphism : (a:category) -> (F:functor (a, a)) -> (r:object a) -> (map F r ~> r) -> (fix a F ~> r)
-     * catamorphism a F r step = morph (project (recursion a F) { carrier = r, reduce = step })
-     * 
-     * 
-     * 
-     * 
-     * fixpoint : (a:category) -> functor (a, a) -> *
-     * fixpoint a F = algebra (map isomorphism a) (fmap isomorphism (a, a) F)
+     * leastfix : category -> *
+     * leastfix a = {
+     *   mu : (F:functor (a, a)) -> initial (algebraic a F)
+     * }
      * 
      * 
      * 
      * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * cata a F = recur
+     *   where recur step = fmap F recur >> step
+     * 
+     * cata a F : (r:object a) -> (map F r ~> r) -> (mu F ~> r)
+     * cata (kleisli a M) (kleislic a M F swap) : (r:object a) -> (map F r ~> map M r) -> (mfix F ~> map M r) 
+     * cata (opposite a) (flip (a, a) F) : (r:object a) -> (r ~> map F r) -> (r ~> nu F)
+     * 
+     * 
+     * mu F <~> map F (mu F)
+     * mfix F <~> map F (mfix F)
+     * nu F <~> map F (nu F)
+     * 
+     * leastfix a <-> greatfix (opposite a)
+     *
+     * 
+     * 
+     * 
+     * mu { map r = 1 + a * r } : initial (algebraic * { map r = 1 + a * r })
+     * 
+     * ([a] -> option [a]
+     * 
+     * monad M
+     * cata (kleisli M) F : (r:*) -> (F r ~> M r) -> (mu F ~> M r)
+     * 
+     * f : (listF (option a) [a] -> option [a]) -> ([option a] -> option [a])
+     * 
+     * \f:a -> option b. cata [b] (\[] -> Some []; (x:ys) -> f x >>= \y. Some (y:ys)) : ([a] -> option [b])
+     * 
+     * (F o M) ~> (M o F)
+     * 
+     * functor a F -> functor (kleisli M) F
+     * 
+     * 
+     * swap : (a:*) -> (1 + r * option b) -> option (1 + r * b)
+     * swap (a, b) [] = Some []
+     * swap (a, b) (x:m) = fmap option (x:) m
+     * 
+     * F (M a) -> M (F a)
+     * 
+     * fmap (cata step) >> step
+     * 
+     * 
+     * kleislic : (a:category) -> (M:monad a) -> (F:functor (a, a)) -> (F o M ~> M o F) -> functor (kleisli a M, kleisli a M)
+     * kleislic a M F swap = {
+     *   map : object a -> object a
+     *   map = map F
+     *   
+     *   fmap : (x:object a, y:object a) -> (x ~> map M y) -> (map F x ~> map M (map F y))
+     *   fmap (x, y) f = fmap F (x, y) f >> transform swap y
+     * }
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * least : (a:category) -> leastfix a -> functor (a, a) -> object a
+     * least a fix F = carrier (bottom (mu fix F))
+     * 
+     * catamorphism : (a:category) -> (fix:leastfix a) -> (F:functor (a, a)) -> (r:object a) -> (map F r ~> r) -> (least a fix F ~> r)
+     * catamorphism a fix F r step = morph (project (mu fix F) { carrier = r, reduce = step })
+     *  
+     * cata step
+     * fmap (cata step) >> step
+     * 
+     * 
+     * leastfun : (a:category) -> leastfix a -> functor (naturally (a, a), a)
+     * leastfun a fix = {
+     *   map : functor (a, a) -> object a
+     *   map = least a fix
+     *   
+     *   fmap : (F:functor (a, a), G:functor (a, a)) -> natural (a, a) (F, G) -> (least a fix F ~> least a fix G)
+     *   fmap (F, G) N = morph (project (mu fix F) { carrier = map G, reduce = N (least a fix G) >> roll G) })
+     * }
+     * 
+     * cata N >> cata step
+     * fmap (cata N) >> N >> fmap (cata step) >> step
+     * fmap (cata N) >> fmap (cata step) >> N >> step
+     * fmap (cata N >> cata step) >> (N >> step)
+     * cata (N >> step)
+     * 
+     * 
+     * 
+     * 
+     * 
+     * free-alg : (a:category) -> leastfix a -> functor (a, a) -> *
+     * free-alg a fix F = {
+     *   map free : object a -> algebra a F
+     *   map free x = bottom (mu fix { map self = x + map F self })
+     *   
+     *   fmap free : (x:object a, y:object a) -> (x ~> y) -> homomorphism a F (map free x, map free y)
+     *   fmap free (x, y) f = { morph 
+     *   forget : a <~ algebraic a F
+     *   forget = {
+     *     map = carrier
+     *     fmap (r, s) H = morph H
+     *   }
+     *   
+     *   transform unit : (x:object a) -> x ~> carrier (map free x)
+     *   transform counit : (r:algebra a F) -> homomorphism (map free (carrier r), r)
+     * }
+     *   
+     * 
+     * recursion : (a:category) -> leastfix a
+     * 
+     * algebra a M = {
+     *   carrier : object a
+     *   reduce : map M carrier ~> carrier
+     *   
+     *   idReturn : return M carrier >> reduce == null a carrier
+     *   idJoin : fmap M (map M carrier, carrier) reduce >> reduce == join M carrier >> reduce
+     * }
+     * 
+     * algebra a M = {
+     *   carrier : *
+     *   carrier = int
+     *   
+     *   reduce : [int] -> int
+     *   reduce = sum
+     *   
+     *   idReturn : (x:int) -> sum [x] == x
+     *   idReturn x = refl
+     *   
+     *   idJoin : (xs:[[int]]) -> sum (fmap [] ([int], int) xs) == sum (join [] int xs)
+     *   idJoin xs = refl
+     * }
      * 
      * 
      * 
@@ -135,6 +266,7 @@ namespace Recursion
      * cohomomorphism a F (r, s) = homomorphism (opposite a) (flip (a, a) F) (s, r)
      * 
      * coalgebraic : (a:category) -> functor (a, a) -> category
+     * coalgebraic a F = opposite (algebraic (opposite a) (flip (a, a) F))
      * coalgebraic a F = {
      *   object = coalgebra a F
      *   (~>) = cohomomorphism a F
@@ -146,14 +278,14 @@ namespace Recursion
      * top : (a:category) -> terminal a -> object a
      * top a init = bottom init
      * 
-     * greatfix : (a:category) -> functor (a, a) -> *
-     * greatfix a F = terminal (coalgebraic a F)
+     * greatfix : category -> *
+     * greatfix a = leastfix (opposite a)
      * 
-     * corecurion : (a:category) -> (F:functor (a, a)) -> greatfix a F
-     * corecursion a = recursion (opposite a) (flip (a, a) F)
+     * nu : (a:category) -> greatfix a -> (F:functor (a, a)) -> terminal (coalgebraic a F)
+     * nu a g F = mu g (flip (a, a) F)
      * 
-     * cofix : (a:category) -> (F:functor (a, a)) -> a
-     * cofix a F = fix (opposite a) (flip (a, a) F)
+     * corecursion : (a:category) -> greatfix a
+     * corecursion a = recursion (opposite a)
      * 
      * anamorhism : (a:category) -> (F:functor (a, a)) -> (r:object a) -> (r ~> map F r) -> (r ~> cofix a F)
      * anamorphism a F r step = catamorphism (opposite a) (flip (a, a) F)
@@ -492,6 +624,9 @@ namespace Recursion
      *   }
      * }
      * 
+     * 
+     * endomorph : category -> category
+     * endomorph a = algebraic a { map x = x  }
      * 
      * 
      * 
