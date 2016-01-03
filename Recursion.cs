@@ -604,6 +604,159 @@ namespace Recursion
      * 
      * 
      * 
+     * ((x:a) -> F x <~> G x) -> ((x:a) -> F x) <~> ((x:a) -> G x))
+     * 
+     * natural (a, b) (F, G) -> functor (fiber a F, fiber b G)
+     * 
+     * (F <~> G) -> (fiber F <~> fiber G)
+     * 
+     * adjunction : (a:category, b:category) -> (functor (a, b), functor (b, a)) -> *
+     * adjunction (a, b) (F, G) = {
+     *   unit : null a ~> (F >> G)
+     *   counit : (G >> F) ~> null b
+     *   
+     *   leftIdentity : null F == (natmap (a, b) F unit >> conatmap (b, a) F counit)   
+     *   rightIdentity : (conatmap (a, b) G unit >> natmap (b, a) F counit) == null G
+     * }
+     * 
+     * 
+     * natmap C n : natural (G >> C, H >> C)
+     * natmap C n = {
+     *   transform x = fmap (map G x, map H x) (transform n x)
+     * }
+     * 
+     * conatmap C n : natural (C >> G, C >> H)
+     * conatmap C n = {
+     *   transform x = transform n (map C x)
+     * }
+     * 
+     * 
+     * 
+     * 
+     * adjunction : (category, category) -> *
+     * adjunction (a, b) = {
+     *   forward : a ~> b
+     *   backward : a <~ b
+     *   
+     *   unit : null cat a ~> (forward >> backward)
+     *   counit : (forward << backward) ~> null cat b
+     * }
+     *   
+     *   transpose : (x:object a, y:object b) -> (map forward x ~> y) <-> (x ~> map backward y)
+     *   transpose (x, y) = {
+     *     forward f = transform unit x >> fmap backward (map forward x, y) f
+     *     backward g = fmap forward (x, map backward y) g >> transform counit y
+     *   }
+     *   
+     * mendler : (a:category) -> (J:adjunction (a, a)) -> functor (algebraic a (forward J), coalgebraic a (backward J))
+     * mendler a J = {
+     *   map : algebra a (forward J) -> coalgebra a (backward J)
+     *   map r = {
+     *     carrier : object a
+     *     carrier = carrier r
+     *   
+     *     expand : carrier ~> map (backward J) carrier
+     *     expand = transpose (carrier, carrier) (reduce r)
+     *   }
+     *  
+     *   fmap : (r:algebra a (forward J), s:algebra a (forward J)) -> homomorphism (r, s) -> cohomomorphism (map r, map s)
+     *   fmap (r, s) H = H
+     * }
+     *  
+     * adjuncts : category
+     * adjuncts = {
+     *   object = category
+     *   (~>) = adjunction
+     *   
+     *   null : (a:category) -> adjunction (a, a)
+     *   null a = {
+     *     forward, backward = null cat a
+     *     unit, counit = {
+     *       transform : (x:object a) -> x ~> x
+     *       transform = null a
+     *     }
+     *   }
+     *   
+     *   (>>) (a, b, c) (A, B) = {
+     *     forward : functor (a, c)
+     *     forward = forward A >> forward B
+     *     
+     *     backward : functor (c, a)
+     *     backward = backward A << backward B
+     *     
+     *     unit : null cat a ~> (forward A >> forward B >> backward B >> backward A)
+     *     unit = {
+     *       transform : (x:object a) -> x ~> map (forward A >> forward B >> backward B >> backward A) x
+     *       transform x = transform (unit A) x >> fmap (backward A) (map (forward A) x, map (forward A >> forward B >> backward B) x) (transform (unit B) (map (forward A) x))
+     *     }
+     *     
+     *     unit : (forward B << forward A << backward A << backward B) ~> null cat a
+     *     counit = {
+     *       transform : (x:object b) -> x <~ map (forward B << forward A << backward A << backward B) x
+     *       transform x = transform (unit B) x << fmap (backward B) (map (forward B) x, map (forward B << forward A << backward A) x) (transform (unit A) (map (forward B) x))
+     *     }
+     *   }
+     * }
+     * 
+     * coprod-adjunct : adjunction (naturally (2, a), a)
+     * coprod-adjunct = {
+     *   forward = { map F = map F 0 + map F 1 }
+     *   backward = { map z = { map _ = z } }
+     * }
+     * 
+     * 
+     * mon-adjunct : adjunction (set, mon)
+     * mon-adjunct = {
+     *   forward : functor (set, mon)
+     *   forward = {
+     *     map : * -> monoid
+     *     map a = { carrier = map list a, empty = [], join = append a }
+     *     
+     *     fmap : (a:*, b:*) -> (a -> b) -> mon-hom (list a, list b)
+     *     fmap (a, b) f = { morph xs = fmap list (a, b) f xs }
+     *   }
+     *   
+     *   backward : functor (mon, set)
+     *   backward = {
+     *     map : monoid -> *
+     *     map m = carrier m
+     *     
+     *     fmap : (m:monoid, n:monoid) -> mon-hom (m, n) -> (carrier m -> carrier n)
+     *     fmap (m, n) H x = morph H x
+     *   }
+     *   
+     *   unit : natural (Id, forward >> R)
+     *   unit = {
+     *     transform : (a:*) -> a -> map list a
+     *     transform a x = [x]
+     *   }
+     *   
+     *   counit : natural (backward >> forward, Id)
+     *   counit = {
+     *     transform : (m:monoid) -> mon-hom (list-mon (carrier m), m)
+     *     transform m = {
+     *       morph : map list (carrier m) -> carrier m
+     *       morph = fold m
+     *     }
+     *   }
+     * }
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
      * 
      * kleili M = {
      *   object = object M
@@ -743,129 +896,6 @@ namespace Recursion
      * 
      * 
      * 
-     * 
-     * 
-     * ((x:a) -> F x <~> G x) -> ((x:a) -> F x) <~> ((x:a) -> G x))
-     * 
-     * natural (a, b) (F, G) -> functor (fiber a F, fiber b G)
-     * 
-     * (F <~> G) -> (fiber F <~> fiber G)
-     * 
-     * adjunction : (a:category, b:category) -> (functor (a, b), functor (b, a)) -> *
-     * adjunction (a, b) (F, G) = {
-     *   unit : null a ~> (F >> G)
-     *   counit : (G >> F) ~> null b
-     *   
-     *   leftIdentity : null F == (natmap (a, b) F unit >> conatmap (b, a) F counit)   
-     *   rightIdentity : (conatmap (a, b) G unit >> natmap (b, a) F counit) == null G
-     * }
-     * 
-     * 
-     * natmap C n : natural (G >> C, H >> C)
-     * natmap C n = {
-     *   transform x = fmap (map G x, map H x) (transform n x)
-     * }
-     * 
-     * conatmap C n : natural (C >> G, C >> H)
-     * conatmap C n = {
-     *   transform x = transform n (map C x)
-     * }
-     * 
-     * 
-     * 
-     * 
-     * adjunction : (category, category) -> *
-     * adjunction (a, b) = {
-     *   forward : a ~> b
-     *   backward : a <~ b
-     *   
-     *   unit : null cat a ~> (forward >> backward)
-     *   counit : (forward << backward) ~> null cat b
-     * }
-     *   
-     *   transpose : (x:object a, y:object b) -> (map forward x ~> y) <-> (x ~> map backward y)
-     *   transpose (x, y) = {
-     *     forward f = transform unit x >> fmap backward (map forward x, y) f
-     *     backward g = fmap forward (x, map backward y) g >> transform counit y
-     *   }
-     * 
-     * adjuncts : category
-     * adjuncts = {
-     *   object = category
-     *   (~>) = adjunction
-     *   
-     *   null : (a:category) -> adjunction (a, a)
-     *   null a = {
-     *     forward, backward = null cat a
-     *     unit, counit = {
-     *       transform : (x:object a) -> x ~> x
-     *       transform = null a
-     *     }
-     *   }
-     *   
-     *   (>>) (a, b, c) (A, B) = {
-     *     forward : functor (a, c)
-     *     forward = forward A >> forward B
-     *     
-     *     backward : functor (c, a)
-     *     backward = backward A << backward B
-     *     
-     *     unit : null cat a ~> (forward A >> forward B >> backward B >> backward A)
-     *     unit = {
-     *       transform : (x:object a) -> x ~> map (forward A >> forward B >> backward B >> backward A) x
-     *       transform x = transform (unit A) x >> fmap (backward A) (map (forward A) x, map (forward A >> forward B >> backward B) x) (transform (unit B) (map (forward A) x))
-     *     }
-     *     
-     *     unit : (forward B << forward A << backward A << backward B) ~> null cat a
-     *     counit = {
-     *       transform : (x:object b) -> x <~ map (forward B << forward A << backward A << backward B) x
-     *       transform x = transform (unit B) x << fmap (backward B) (map (forward B) x, map (forward B << forward A << backward A) x) (transform (unit A) (map (forward B) x))
-     *     }
-     *   }
-     * }
-     * 
-     * coprod-adjunct : adjunction (naturally (2, a), a)
-     * coprod-adjunct = {
-     *   forward = { map F = map F 0 + map F 1 }
-     *   backward = { map z = { map _ = z } }
-     * }
-     * 
-     * 
-     * mon-adjunct : adjunction (set, mon)
-     * mon-adjunct = {
-     *   forward : functor (set, mon)
-     *   forward = {
-     *     map : * -> monoid
-     *     map a = { carrier = map list a, empty = [], join = append a }
-     *     
-     *     fmap : (a:*, b:*) -> (a -> b) -> mon-hom (list a, list b)
-     *     fmap (a, b) f = { morph xs = fmap list (a, b) f xs }
-     *   }
-     *   
-     *   backward : functor (mon, set)
-     *   backward = {
-     *     map : monoid -> *
-     *     map m = carrier m
-     *     
-     *     fmap : (m:monoid, n:monoid) -> mon-hom (m, n) -> (carrier m -> carrier n)
-     *     fmap (m, n) H x = morph H x
-     *   }
-     *   
-     *   unit : natural (Id, forward >> R)
-     *   unit = {
-     *     transform : (a:*) -> a -> map list a
-     *     transform a x = [x]
-     *   }
-     *   
-     *   counit : natural (backward >> forward, Id)
-     *   counit = {
-     *     transform : (m:monoid) -> mon-hom (list-mon (carrier m), m)
-     *     transform m = {
-     *       morph : map list (carrier m) -> carrier m
-     *       morph = fold m
-     *     }
-     *   }
-     * }
      * 
      * 
      * 
