@@ -772,21 +772,99 @@ namespace Recursion
      * }
      * 
      * 
-     * adjunction : (a:category, b:category) -> *
-     * adjunction = {
-     *   F : functor (a, b)
-     *   G : functor (b, a)
+     * 
+     * 
+     * adjunction : (category, category) -> *
+     * adjunction (a, b) = {
+     *   forward : a ~> b
+     *   backward : a <~ b
      *   
-     *   natural : (x:object a, y:object b) -> (map F x ~> y) <~> (x ~> map G y)
+     *   unit : null cat a ~> (forward >> backward)
+     *   counit : (forward << backward) ~> null cat b
+     * }
      *   
+     *   transpose : (x:object a, y:object b) -> (map forward x ~> y) <-> (x ~> map backward y)
+     *   transpose (x, y) = {
+     *     forward f = transform unit x >> fmap backward (map forward x, y) f
+     *     backward g = fmap forward (x, map backward y) g >> transform counit y
+     *   }
+     * 
+     * adjuncts : category
+     * adjuncts = {
+     *   object = category
+     *   (~>) = adjunction
      *   
-     *   preF x = map F x ~> y
-     *   preG x = x ~> map G y
+     *   null : (a:category) -> adjunction (a, a)
+     *   null a = {
+     *     forward, backward = null cat a
+     *     unit, counit = {
+     *       transform : (x:object a) -> x ~> x
+     *       transform = null a
+     *     }
+     *   }
      *   
-     *   prenatural : (y:object b) -> (\x. map F x ~> y) <~> (\x. x ~> map G y)
-     *   prenatural : (x:object a) -> (\y. map F x ~> y) <~> (\y. x ~> map G y)
+     *   (>>) (a, b, c) (A, B) = {
+     *     forward : functor (a, c)
+     *     forward = forward A >> forward B
+     *     
+     *     backward : functor (c, a)
+     *     backward = backward A << backward B
+     *     
+     *     unit : null cat a ~> (forward A >> forward B >> backward B >> backward A)
+     *     unit = {
+     *       transform : (x:object a) -> x ~> map (forward A >> forward B >> backward B >> backward A) x
+     *       transform x = transform (unit A) x >> fmap (backward A) (map (forward A) x, map (forward A >> forward B >> backward B) x) (transform (unit B) (map (forward A) x))
+     *     }
+     *     
+     *     unit : (forward B << forward A << backward A << backward B) ~> null cat a
+     *     counit = {
+     *       transform : (x:object b) -> x <~ map (forward B << forward A << backward A << backward B) x
+     *       transform x = transform (unit B) x << fmap (backward B) (map (forward B) x, map (forward B << forward A << backward A) x) (transform (unit A) (map (forward B) x))
+     *     }
+     *   }
+     * }
+     * 
+     * coprod-adjunct : adjunction (naturally (2, a), a)
+     * coprod-adjunct = {
+     *   forward = { map F = map F 0 + map F 1 }
+     *   backward = { map z = { map _ = z } }
+     * }
+     * 
+     * 
+     * mon-adjunct : adjunction (set, mon)
+     * mon-adjunct = {
+     *   forward : functor (set, mon)
+     *   forward = {
+     *     map : * -> monoid
+     *     map a = { carrier = map list a, empty = [], join = append a }
+     *     
+     *     fmap : (a:*, b:*) -> (a -> b) -> mon-hom (list a, list b)
+     *     fmap (a, b) f = { morph xs = fmap list (a, b) f xs }
+     *   }
      *   
+     *   backward : functor (mon, set)
+     *   backward = {
+     *     map : monoid -> *
+     *     map m = carrier m
+     *     
+     *     fmap : (m:monoid, n:monoid) -> mon-hom (m, n) -> (carrier m -> carrier n)
+     *     fmap (m, n) H x = morph H x
+     *   }
      *   
+     *   unit : natural (Id, forward >> R)
+     *   unit = {
+     *     transform : (a:*) -> a -> map list a
+     *     transform a x = [x]
+     *   }
+     *   
+     *   counit : natural (backward >> forward, Id)
+     *   counit = {
+     *     transform : (m:monoid) -> mon-hom (list-mon (carrier m), m)
+     *     transform m = {
+     *       morph : map list (carrier m) -> carrier m
+     *       morph = fold m
+     *     }
+     *   }
      * }
      * 
      * 
