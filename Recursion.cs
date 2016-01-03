@@ -3,9 +3,11 @@ using System;
 namespace Recursion
 {
     /*
-     * 
      * relation : * -> *
      * relation a = (a, a) -> *
+     * 
+     * (==) : (a:*) -> relation a
+     * (==) a (x, y) = (f:a -> *) -> f x -> f y
      * 
      * category : * -> *
      * category a = {
@@ -37,11 +39,64 @@ namespace Recursion
      * recursor : (a:*) -> (a -> a) -> object a
      * recursor a f .invoke self = f (loop a self)
      * 
-     * fix : (a:*) -> (a -> a) -> a
-     * fix a f = loop a (recursor a f)
+     * fixpoint : (a:*) -> (a -> a) -> a
+     * fixpoint a f = loop a (recursor a f)
      * 
-     * recurse : (a <: category) -> (f <: functor a) -> (r:a) -> (r ~ f r) -> (r ~ fix a f)
-     * recurse a f r step = fix (r ~ fix a f) \self. step <> fmap (r, f r) self
+     * recurse : (a <: category) -> (f <: functor a) -> (r:a) -> (r ~ f r) -> (r ~ fixpoint a f)
+     * recurse a f r step = fixpoint (r ~ fixpoint a f) \self. step <> fmap (r, f r) self
+     * 
+     * 
+     * 
+     * listF : * -> * -> *
+     * listF a r = Nil | Cons (a, r)
+     * 
+     * list a : * -> *
+     * list a = fix (listF a)
+     * 
+     * reduce : (a:*) -> list a -> (r:*) -> (a -> r -> r) -> (r -> r)
+     * reduce a xs r cons nil = recurse (dual *) (listF a) step xs
+     *   where step : listF a r -> r
+     *         step Nil = nil
+     *         step (Cons (x, z)) = cons x z
+     *         
+     * reduce : (a:*) -> list a -> (r:*) -> (a -> r -> r) -> (r -> r)
+     * reduce a xs r cons nil = recurse xs
+     *   where recurse : list a -> r
+     *         recurse Nil = nil
+     *         recurse (Cons (x, xs)) = cons x (recurse xs)
+     * 
+     * iterate : (a:*) -> a -> (a -> a) -> list a
+     * iterate a x f = recurse * (listF a) step x
+     *   where step : a -> listF a a
+     *         step s = Cons (s, s)
+     * 
+     * 
+     * 
+     * 
+     * groupoid : * -> *
+     * groupoid a = {
+     *   (~) : relation a
+     *   null : (x:a) -> (x ~ x)
+     *   inverse : (x:a, y:a) -> (x ~ y) -> (y ~ x)
+     *   (<>) : (x:a, y:a, z:a) -> (x ~ y, y ~ z) -> (x ~ z)
+     *   
+     *   identitySelf : (x:a) -> inverse (x, x) (null x) == null x
+     *   involution : (x:a, y:a) -> (p:x ~ y) -> inverse (y, x) (inverse (x, y) p) == p
+     *   cancelInverse : (x:a, y:a) -> (p:x ~ y) -> (p <> inverse p) == null x
+     *   
+     *   identityLeft : (x:a, y:a) -> (p:x ~ y) -> (null x <> p) == p
+     *   identityRight : (x:a, y:a) -> (p:x ~ y) -> (p <> null y) == p
+     *   associative : (w:a, x:a, y:a, z:a) -> (r:w ~ x, s:x ~ y, t:y ~ z) -> ((r <> s) <> t) == (r <> (s <> t))
+     * }
+     * 
+     * functoid : (a <: groupoid) -> (a -> a) -> *
+     * functoid a f = {
+     *   fmap : (x:a, y:a) -> (x ~ y) -> (f x ~ f y)
+     *   
+     *   identity : (x:a) -> fmap (x, x) (null x) == null (f x)
+     *   mirrored : (x:a, y:a) -> (p:x ~ y) -> fmap (y, x) (inverse (x, y) p) == inverse (fmap (x, y) p)
+     *   composed : (x:a, y:a, z:a) -> (p:x ~ y, q:y ~ z) -> (fmap (x, z) (p <> q) == (fmap (x, y) p <> fmap (y, z) q))
+     * }
      * 
      */
 }
