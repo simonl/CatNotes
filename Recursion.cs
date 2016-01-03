@@ -26,11 +26,22 @@ namespace Recursion
      *   compose : (x:a, y:a, z:a) -> (p:x ~ y, q:y ~ z) -> (fmap (x, z) (p <> q) == (fmap (x, y) p <> fmap (y, z) q))
      * }
      * 
-     * recurse : (a <: category) -> (f <: functor a) -> (r:a) -> (r ~ f r) -> (r ~ fix f)
-     * recurse a f r step = fix \self. step <> fmap self
+     * object : * -> *
+     * object a = {
+     *   invoke : object a -> a
+     * }
+     * 
+     * loop : (a:*) -> object a
+     * loop a .invoke self = self .invoke self
+     * 
+     * recursor : (a:*) -> (a -> a) -> object a
+     * recursor a f .invoke self = f (loop a self)
      * 
      * fix : (a:*) -> (a -> a) -> a
-     * fix f = (\x. x x) (\x. f (x x))
+     * fix a f = loop a (recursor a f)
+     * 
+     * recurse : (a <: category) -> (f <: functor a) -> (r:a) -> (r ~ f r) -> (r ~ fix a f)
+     * recurse a f r step = fix (r ~ fix a f) \self. step <> fmap (r, f r) self
      * 
      */
 }
