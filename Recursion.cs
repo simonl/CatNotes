@@ -156,6 +156,82 @@ namespace Recursion
      * 
      * 
      * 
+     * object : * -> *
+     * object a = {
+     *   invoke : object a -> a
+     * }
+     * 
+     * null : (a:*) -> object a
+     * null a = {
+     *   invoke self = self .invoke self
+     * }
+     * 
+     * bottom : (a:*) -> a
+     * bottom a = (null a) .invoke (null a)
+     * 
+     * iterator : (a:*) -> (a -> a) -> object a
+     * iterator a f = {
+     *   invoke self = f ((null a) .invoke self)
+     * }
+     * 
+     * turing : category -> *
+     * turing a = {
+     *   fix : (x:object a) -> (x ^ x) ~> x
+     * }
+     * 
+     * Y : turing set
+     * Y = {
+     *   fix : (a:*) -> (a -> a) -> a
+     *   fix a f = (null a) .invoke (iterator a f)
+     * }
+     * 
+     * catY : turing cat
+     * catY = {
+     *   fix : (a:category) -> functor (naturally (a, a), a)
+     *   fix a = {
+     *     map : functor (a, a) -> a .object
+     *     map F = Y .fix (a .object) (F .map)
+     *     
+     *     fmap : (F:functor (a, a), G:functor (a, a)) -> natural (a, a) (F, G) -> (map F ~> map G)
+     *     fmap (F, G) N = Y .fix (map F ~> map G) recur
+     *       where recur self = F .fmap (map F, map G) self >> N .transform (map G)
+     *   }
+     * }
+     * 
+     * genrec : (a:category) -> recursion a
+     * genrec a = {
+     *   mu : (F:functor (a, a)) -> initial (algebraic a F)
+     *   mu F = {
+     *     bottom : algebra a F
+     *     bottom = {
+     *       carrier : a .object
+     *       carrier = catY .fix a .map F
+     *       
+     *       reduce : F .map carrier ~> carrier
+     *       reduce = a .null carrier
+     *     }
+     *     
+     *     project : (r:algebra a F) -> (bottom ~> r)
+     *     project r = {
+     *       morph : bottom .carrier ~> r .carrier
+     *       morph = Y .fix (bottom .carrier ~> r .carrier) recur
+     *         where recur self = F .fmap (bottom .carrier, r .carrier) morph >> r .reduce
+     *     }
+     *   }
+     * }
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
      * 
      * 
      * 
@@ -708,71 +784,6 @@ namespace Recursion
      * 
      * 
      * 
-     * 
-     * object : * -> *
-     * object a = {
-     *   invoke : object a -> a
-     * }
-     * 
-     * null : (a:*) -> object a
-     * null a = {
-     *   invoke self = self .invoke self
-     * }
-     * 
-     * bottom : (a:*) -> a
-     * bottom a = (null a) .invoke (null a)
-     * 
-     * iterator : (a:*) -> (a -> a) -> object a
-     * iterator a f = {
-     *   invoke self = f ((null a) .invoke self)
-     * }
-     * 
-     * turing : category -> *
-     * turing a = {
-     *   fix : (x:object a) -> (x ^ x) ~> x
-     * }
-     * 
-     * Y : turing set
-     * Y = {
-     *   fix : (a:*) -> (a -> a) -> a
-     *   fix = (null a) .invoke (iterator a f)
-     * }
-     * 
-     * 
-     * catY : turing cat
-     * catY = {
-     *   fix : (a:category) -> functor (naturally (a, a), a)
-     *   fix a = {
-     *     map : functor (a, a) -> a .object
-     *     map F = Y .fix (a .object) (F .map)
-     *     
-     *     fmap : (F:functor (a, a), G:functor (a, a)) -> natural (a, a) (F, G) -> (map F ~> map G)
-     *     fmap (F, G) N = Y .fix (map F ~> map G) recur
-     *       where recur self = F .fmap (map F, map G) self >> N .transform (map G)
-     *   }
-     * }
-     * 
-     * genrec : (a:category) -> recursion a
-     * genrec a = {
-     *   mu : (F:functor (a, a)) -> initial (algebraic a F)
-     *   mu F = {
-     *     bottom : algebra a F
-     *     bottom = {
-     *       carrier : a .object
-     *       carrier = catY .fix a .map F
-     *       
-     *       reduce : F .map carrier ~> carrier
-     *       reduce = a .null carrier
-     *     }
-     *     
-     *     project : (r:algebra a F) -> (bottom ~> r)
-     *     project r = {
-     *       morph : bottom .carrier ~> r .carrier
-     *       morph = Y .fix (bottom .carrier ~> r .carrier) recur
-     *         where recur self = F .fmap (bottom .carrier, r .carrier) morph >> r .reduce
-     *     }
-     *   }
-     * }
      * 
      * 
      * 
