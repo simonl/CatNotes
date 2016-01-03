@@ -3,6 +3,76 @@ using System;
 namespace Recursion
 {
     /*
+     * boolean : *
+     * boolean = True | False
+     * 
+     * equatable : * -> *
+     * equatable a = {
+     *   (=?) : (a, a) -> boolean
+     * }
+     * 
+     */
+
+    /*
+     * absurd : *
+     * absurd : [a] -> a
+     * 
+     * relation : * -> *
+     * relation a = (a, a) -> *
+     * 
+     * (==) : [a] -> relation a
+     * (==) a (x, y) = [f:a -> *] -> f x -> f y
+     * 
+     * decision : * -> *
+     * decision a = Proof a | Refutation (a -> absurd)
+     * 
+     * equatable : * -> *
+     * equatable a = {
+     *   (=?) : [x:a, y:a] -> decision (x == y)
+     * }
+     * 
+     */
+
+    /*
+     * algebra : (a <: category) -> (a -> a) -> a -> *
+     * algebra a f r = {
+     *   reduce : f r ~ r
+     * }
+     * 
+     * homomorphism : (a <: category) -> (f <: functor a) -> (r <: algebra a f) -> (s <: algebra a f) -> *
+     * homomorphism f r s = {
+     *   convert : r ~ s
+     *   preserving : (xs:f a) -> convert (reduce xs) == reduce (fmap (r, s) convert xs)
+     * }
+     * 
+     * over : (a:*) -> (a -> a) -> relation a -> relation a
+     * over f (~) (x, y) = f x ~ f y
+     * 
+     * functor : (a <: category) -> (a -> a) -> *
+     * functor (a, (~)) f = homomorphism (relation a) (CategoryFunctor a) ((~), compose) (over f (~), compose)
+     * functor a f = {
+     *   fmap : (~) => over f (~)
+     *   
+     *   identity : (x:a) -> fmap (x, x) (null x) == null (f x)
+     *   compose : (x:a, y:a, z:a) -> (p:x ~ y, q:y ~ z) -> (fmap (x, z) (p <> q) == (fmap (x, y) p <> fmap (y, z) q))
+     * }
+     * 
+     * class CategoryFunctor : (a:*) -> (self:relation a) -> relation a
+     *   Null : (x:a) -> CategoryFunctor a (x, x)
+     *   Compose : (x:a, y:a, z:a) -> (self (x, y), self (y, z)) -> CategoryFunctor (x, z)
+     *   
+     * homomorphism (relation a) (CategoryFunctor a) ((~), compose) (over f (~), compose)
+     * 
+     * monoid : * -> *
+     * monoid a = Null | Compose (a, a)
+     * 
+     * _ : (a:*) -> homomorphism * monoid (list a, append) (int, sum)
+     * _ = {
+     *   convert = length
+     * }
+     * 
+     */
+    /*
      * relation : * -> *
      * relation a = (a, a) -> *
      * 
