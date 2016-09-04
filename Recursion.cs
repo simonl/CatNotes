@@ -5,6 +5,7 @@ using System.Collections.Generic;
 namespace Recursion
 {
     /*
+     * 
      * relation : * -> *
      * relation a = (a, a) -> *
      * 
@@ -34,7 +35,7 @@ namespace Recursion
      *   identity : (x:object a) -> fmap (x, x) (null a x) == null b (map x)
      *   compose : (x:object a, y:object a, z:object a) -> (f:x ~> y, g:y ~> z) -> fmap (x, z) (f >> g) == (fmap (x, y) f >> fmap (y, z) g)
      * }
-     * 
+     *  
      * natural : (a:category, b:category) -> relation (functor (a, b))
      * natural (a, b) (F, G) = {
      *   transform : (x:object a) -> map F x ~> map G x
@@ -76,6 +77,8 @@ namespace Recursion
      * recursion a = {
      *   mu : (F:functor (a, a)) -> initial (algebraic a F)
      * }
+     * 
+     * 
      * 
      * 
      * 
@@ -150,6 +153,152 @@ namespace Recursion
      * 
      * 
      * 
+     * graph : *
+     * graph = {
+     *   node : *
+     *   edge : relation node
+     * }
+     * 
+     * path : (G:graph) -> relation (node G)
+     * path G (x, z) = Empty (x == z) | Next (y:node G, edge (x, y), path G (y, z)) 
+     * 
+     * empty : (G:graph) -> (x:node G) -> path G (x, x)
+     * empty G x = Empty (refl x)
+     * 
+     * append : (G:graph) -> (x:node G, y:node G, z:node G) -> (path G (x, y), path G (y, z)) -> path G (x, z)
+     * append G (x, y, z) (Empty _, q) = q
+     * append G (x, y, z) (Next (w, e, p), q) = Next (w, e, append G (w, y, z) (p, q))
+     * 
+     * free : graph -> category
+     * free G = {
+     *   object = node G
+     *   (~>) = path G
+     *   
+     *   null = empty G
+     *   (>>) = append G
+     * }
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * object : N -> N
+     * object a = {
+     *   invoke : !(object a) -> a
+     * }
+     *   
+     * null : (a:N) -> object N
+     * null a .invoke self = force self .invoke self
+     * 
+     * recursor : (a:N) -> !(!a -> a) -> object a
+     * recursor a F .invoke self = force F { null a .invoke self }
+     * 
+     * Y : (a:N) -> !(!a -> a) -> a
+     * Y a F = null a .invoke { recursor a F }
+     * 
+     * 
+     * 
+     * 
+     * Y a F
+     * null a .invoke { recursor a F }
+     * force { recursor a F } .invoke { recursor a F }
+     * recursor a F .invoke { recursor a F }
+     * recursor a F .invoke { recursor a F }
+     * force F { null a .invoke { recursor a F } }
+     * force F { Y a F }
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * object : * -> *
+     * object a = <
+     *   invoke : (~(object a), a)
+     * >
+     * 
+     * null : ~(a:*, object a)
+     * null (a, invoke, self, k) = self (invoke, self, k)
+     * 
+     * recursor : ~(a:*, ~(~a, a), object a)
+     * recursor (a, F, invoke, self, k) = F (h => null (a, invoke, self, h), k)
+     * 
+     * Y : ~(a:*, ~(~a, a), a)
+     * Y (a, F, k) = null (a, invoke, o => recursor (a, F, o), k)
+     * 
+     * 
+     * function Null(self, args...) {
+     *   return self(self, ...args);
+     * }
+     * 
+     * function Recursor(F, self, args...) {
+     *   return F(argz... => Null(self, ...argz), ...args);
+     * }
+     * 
+     * function Y(F, args...) {
+     *   return Null(argz... => Recursor(F, ...argz), ...args);
+     * }
+     * 
+     * function Null(args...) {
+     *   return this.call(this, ...args);
+     * }
+     * 
+     * function Recursor(F, args...) {
+     *   return F(argz... => Null.call(this, ...argz), ...args);
+     * }
+     * 
+     * function Y(F, args...) {
+     *   return Null.call(function (argz...) { return Recursor.call(this, F, ...argz); }, ...args);
+     * }
+     * 
+     * 
+     * 
+     * 
+     * functor = {
+     *   map : P -> P
+     *   fmap : (a:P, b:P) -> !(a -> ?b) -> map a -> ?(map b)
+     *   
+     *   map : P -> N
+     *   fmap : (a:P, b:P) -> !(a -> ?b) -> !(map a) -> map b
+     *   
+     *   map : N -> N
+     *   fmap : (a:N, b:N) -> !(!a -> b) -> !(map a) -> map b
+     *   
+     *   map : N -> P
+     *   fmap : (a:N, b:N) -> !(!a -> b) -> map a -> ?(map b)
+     * }
+     * 
+     * !(a -> ?b)     ~(a, ~b)
+     * !(?a <- b)     ~(b, ~a)
+     * 
+     * !(!a -> b)     ~(~a, b)
+     * !(a <- !b)     ~(~b, a)
+     * 
+     * 
+     * 
+     * 
+     * fmap : ~(a:*, b:*, ~(a, ~b), map a, ~(map b))
+     * fmap : ~(a:*, b:*, ~(~a, b), ~(map a), map b)
+     * 
+     * fmap : ~(a:*, b:*, ~(a, ~b), ~(map a), map b)
+     * fmap : ~(a:*, b:*, ~(~a, b), map a, ~(map b))
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
      * 
      * 
      * 
@@ -184,7 +333,7 @@ namespace Recursion
      *   fix : (a:*) -> (a -> a) -> a
      *   fix a f = (null a) .invoke (iterator a f)
      * }
-     * 
+     *   
      * catY : turing cat
      * catY = {
      *   fix : (a:category) -> functor (naturally (a, a), a)
@@ -502,8 +651,132 @@ namespace Recursion
      * }
      * 
      * 
-     * endomorph : category -> category
-     * endomorph a = algebraic a { map x = x  }
+     * 
+     * 
+     * 
+     * 
+     * what = {
+     *   object = a
+     * }
+     * 
+     * 
+     * 
+     * 
+     * async : * -> *
+     * async a = (r:*) -> (a -> r) -> r
+     * 
+     * lift : (a:*) -> a -> async a
+     * 
+     * 
+     * async : functor (cat, set)
+     * async = {
+     *   map a = (~>) (fun (cat, cat)) ({ map r = fun (a, r) }, { map r = r })
+     *   
+     * }
+     * 
+     * extensional : category -> functor (cat, cat)
+     * extensional r = {
+     *   map : category -> category
+     *   map a = naturally (naturally (a, r), r)
+     *   
+     *   fmap : (a:category, b:category) -> functor (a, b) -> functor (naturally (naturally (a, r), r), naturally (naturally (b, r), r))
+     *   fmap (a, b) F = {
+     *     map : functor (naturally (a, r), r) -> functor (naturally (b, r), r)
+     *     map E = {
+     *       map : functor (b, r) -> *
+     *       map P = map E (F >> P)
+     *       
+     *       fmap : (P:functor (b, r), Q:functor (b, r)) -> natural (b, r) (P, Q) -> map E (F >> P) -> map E (F >> Q)
+     *       fmap (P, Q) N = fmap E (F >> P, F >> Q) { transform x = transform N (map F x) }
+     *     }
+     *     
+     *     fmap : (D:functor (naturally (a, r), r), E:functor (naturally (a, r), r)) -> natural (naturally (a, r), r) (D, E) -> natural (naturally (b, r), r) (map D, map E)
+     *     fmap (D, E) N = {
+     *       transform : (P:functor (b, r)) -> map D (F >> P) -> map E (F >> P)
+     *       transform P = transform N (F >> P)
+     *     }
+     *   }
+     * }
+     * 
+     * extension : (a:category, b:category) -> functor (a, map (extensional b) a)
+     * extension (a, b) = {
+     *   map : object a -> functor (naturally (a, b), b)
+     *   map x = {
+     *     map : functor (a, b) -> object b
+     *     map P = map P x
+     *     
+     *     fmap : (P:functor (a, b), Q:functor (a, b)) -> natural (a, b) (P, Q) -> map P x ~> map Q x
+     *     fmap (P, Q) N = transform N x
+     *   }
+     *  
+     *   fmap : (x:object a, y:object a) -> (x ~> y) -> natural (naturally (a, b), b) (map x, map y)
+     *   fmap (x, y) f = {
+     *     transform : (P:functor (a, set)) -> map P x ~> map P y
+     *     transform P = fmap P (x, y) f
+     *   }
+     * }
+     * 
+     * 
+     * modular : (a:category, b:category) -> relation (object a) 
+     * modular (a, b) (x, y) == (~>) (extensional b .map a) (extension (a, b) .map x, extension (a, b) .map y)
+     * modular (a, b) (x, y) = {
+     *   transport : (F:functor (a, b)) -> map F x ~> map F y
+     *   
+     *   exchange : (F:functor (a, b), G:functor (a, b)) -> (N:natural (a, b) (F, G)) -> (transform N x >> transport G) == (transport F >> transform N y)
+     * }
+     * 
+     * (==) a = modular (discrete a, set)
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * modularly : (category, category) -> category
+     * modularly (a, b) = {
+     *   object = object a
+     *   (~>) = modular (a, b)
+     *   
+     *   null : (x:object a) -> modular (a, b) (x, x)
+     *   null x = {
+     *     transport F = null b (map F x)
+     *   }
+     *   
+     *   (>>) : (x:object a, y:object a, z:object a) -> (modular (a, b) (x, y), modular (a, b) (y, z)) -> modular (a, b) (x, z)
+     *   (>>) (x, y, z) (M, N) = {
+     *     transport F = transport M F >> transport N F
+     *   }
+     * }
+     * 
+     * 
+     * 
+     * modultor : (a:category, b:category) -> profunctor (a, a)
+     * modultor (a, b) = {
+     *   map : relation (object a)
+     *   map = modular (a, b)
+     *   
+     *   fmap : ((x:object a, y:object a), (m:object a, n:object a)) -> (m ~> x, y ~> n) -> map (x, y) -> map (m, n)
+     *   fmap ((x, y), (m, n)) (f, g) N = {
+     *     transport : (P:functor (a, b)) -> map P m ~> map P n
+     *     transport P = fmap P (m, x) f >> transport N P >> fmap P (y, n) g 
+     *   }
+     * }
+     * 
+     * relatedly = {
+     *   object = *
+     *   (a ~> b) = (a, b) -> * 
+     * }
+     * 
+     * profurally : category
+     * profurally = {
+     *   object = category
+     *   (~>) = profunctor
+     *   
+     *   null : (a:category) -> profunctor (a, a)
+     *   null a = modultor (a, set)
+     * }
+     * 
+     * 
      * 
      * 
      * 
@@ -609,7 +882,7 @@ namespace Recursion
      *   apply : ((y ^ x) * x) ~> y  
      *   curry : (r:object a) -> (f:(r * x) ~> y) -> (r ~> (y ^ x))
      *   
-     *   eta : (r:object a) -> (f:(r * x) ~> y) -> join (curry f, null x) >> apply == f
+     *   eta : (r:object a) -> (f:(r * x) ~> y) -> join (curry r f, null x) >> apply == f
      * }
      * 
      * logarithm? : (a:category) -> relation (object a)
@@ -627,6 +900,22 @@ namespace Recursion
      * 
      * 
      * 
+     * 
+     * 
+     * expo : (a:category) -> relation (object a)
+     * expo a (x, y) = {
+     *   lambda : object a
+     *   apply : (lambda * y) ~> x
+     * }
+     * 
+     * expotion : (a:category) -> (x:object a, y:object a) -> relation (expo a (x, y))
+     * expotion a (x, y) (F, G) = {
+     *   morph : lambda F ~> lambda G
+     *   
+     *   extension : par (morph, null a y) >> apply G == apply F
+     * }
+     * 
+     * exponent a (x, y) = terminal { object = expo a (x, y), (~>) = expotion a (x, y) }
      * 
      * 
      * 
@@ -686,6 +975,96 @@ namespace Recursion
      *   project : (s:cospan a (x, y)) -> cospantion (bottom, s)
      * }
      * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * sums : (a:*, b:*) -> coproduct set (a, b)
+     * sums (a, b) = {
+     *   bottom = {
+     *     join = < Left : a, Right : b >
+     *     left x = Left x
+     *     right y = Right y
+     *   }
+     *   
+     *   project s = {
+     *     morph (Left x) = left s x
+     *     morph (Right y) = right s y
+     *   }
+     * }
+     * 
+     * sum : (a:category) -> ((x:object a, y:object a) -> coproduct a (x, y)) -> functor (cross (a, a), a)
+     * sum a (+) = {
+     *   map : (object a, object a) -> object a
+     *   map (x, y) = join (bottom (x + y))
+     *   
+     *   fmap : ((x:object a, y:object a), (n:object a, m:object a)) -> (f:x ~> n, g:y ~> m) -> join (bottom (x + y)) ~> join (bottom (n + m))
+     *   fmap ((x, y), (n, m)) (f, g) = morph (project (x + y) switch)
+     *     where switch = {
+     *       join = join (bottom (n + m)),
+     *       left = f >> left (bottom (n + m)),
+     *       right = g >> right (bottom (n + m)) 
+     *     }
+     * }
+     * 
+     * exponent : (a:category) -> ((x:object a, y:object a) -> exponential a (x, y)) -> functor (cross (a, opposite a), a)
+     * exponent a (^) = {
+     *   map : (object a, object a) -> object a
+     *   map (x, y) = lambda (top (x ^ y))
+     *   
+     *   fmap : ((x:object a, y:object a), (n:object a, m:object a)) -> (f:x ~> n, g:m ~> y) -> lambda (top (x ^ y)) ~> lambda (top (n ^ m))
+     *   fmap ((x, y), (n, m)) (f, g) = morph (project (n ^ m) wrap)
+     *     where wrap : expotion a (n, m)
+     *           wrap = {
+     *             lambda : object a
+     *             lambda = lambda (top (x ^ y))
+     *             
+     *             apply : (lambda * m) ~> n
+     *             apply = par (null a lambda, g) >> apply (top (x ^ y)) >> f
+     *           }
+     * }
+     * 
+     * sumCats : (a:category, b:category) -> coproduct cat (a, b)
+     * sumCats (a, b) = {
+     *   bottom = {
+     *     join = {
+     *       object = object a + object b
+     *       (~>) (Left x) (Left z) = x ~> z
+     *       (~>) (Right y) (Right z) = y ~> z
+     *       (~>) _ _ = (a:*) -> a
+     *       
+     *       null (Left x) = null a x
+     *       null (Right y) = null b y
+     *       
+     *       (>>) (Left x, Left y, Left z) = (>>) a (x, y, z)
+     *       (>>) (Right x, Right y, Right z) = (>>) b (x, y, z)
+     *     }
+     *     
+     *     left : functor (a, join)
+     *     left = {
+     *       map x = Left x
+     *       fmap (x, y) f = f
+     *     }
+     *     
+     *     right : functor (b, join)
+     *     right = {
+     *       map x = Right x
+     *       fmap (x, y) f = f
+     *     }
+     *   }
+     *   
+     *   project s = {
+     *     morph : functor (join bottom, join s)
+     *     morph = {
+     *       map (Left x) = map (left s) x
+     *       map (Right y) = map (right s) y
+     *       
+     *       fmap (Left x, Left y) = fmap (left s) (x, y)
+     *       fmap (Right x, Right y) = fmap (right s) (x, y)
+     *     }
+     *   }
+     * }
      * 
      * 
      * 
@@ -1742,8 +2121,17 @@ namespace Recursion
      * }
      * 
      * 
-     * power : (a:*) -> (a -> *) -> *
-     * power a f = (x:a, f x)
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
+     * 
      * 
      * 
      * 
